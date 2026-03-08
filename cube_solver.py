@@ -1,5 +1,4 @@
 import cv2
-import numpy as np
 from typing import Any
 from helper_functions import (
 	get_fixed_cube_guide,
@@ -12,6 +11,7 @@ from helper_functions import (
 	sample_cell_bgr,
 	classify_bgr_color,
 	draw_cell_color_markers,
+	draw_solution_overlay,
 	FACE_COUNT
 )
 from solving_logic import (
@@ -34,6 +34,9 @@ def main():
 	scanning_active = False
 	status_text = "Press S to begin scanning"
 	status_color = (0, 255, 0)
+	solution_status = ""
+	solution_text = ""
+	solution_is_error = False
 
 	while True:
 		ok, frame = cap.read()
@@ -48,6 +51,8 @@ def main():
 		draw_cell_color_markers(frame, cell_boxes, live_samples)
 		draw_instructions(frame, captured_count)
 		draw_hint(frame, captured_count, status_text, status_color)
+		if solution_status:
+			draw_solution_overlay(frame, solution_status, solution_text, solution_is_error)
 		cv2.imshow("2x2 Rubik Cube Manual Scan", frame)
 
 		key = cv2.waitKey(1) & 0xFF
@@ -60,6 +65,9 @@ def main():
 			scanning_active = True
 			status_text = "Scanning started. Press SPACE to save current face"
 			status_color = (0, 255, 255)
+			solution_status = ""
+			solution_text = ""
+			solution_is_error = False
 			print("=== Scan Started ===")
 
 		if key == 32 and scanning_active: # SPACE key to capture current face
@@ -82,9 +90,24 @@ def main():
 				status_color = (255, 255, 0)
 				scanning_active = False
 				print_scanned_faces_summary(captured_faces)
-				solution = get_cube_solution(captured_faces)
-				print("Solution:", solution)
-				print("Solution length:", len(solution.split()))
+				ret, computed_solution = get_cube_solution(captured_faces)
+				if ret:
+					solution_length = len(computed_solution.split())
+					if solution_length < 1:
+						print("The cube is already solved! No moves needed.")
+						solution_status = "Solved"
+						solution_text = "The cube is already solved. No moves needed."
+						solution_is_error = False
+					else:
+						solution_status = f"Solution found ({solution_length} moves)"
+						solution_text = computed_solution
+						solution_is_error = False
+					print(f"Found solution of length {solution_length}: {computed_solution}")
+				else:
+					print("Error:", computed_solution)
+					solution_status = "Solver error"
+					solution_text = str(computed_solution)
+					solution_is_error = True
 				print("=== Scan Complete ===\n")
 
 	cap.release()

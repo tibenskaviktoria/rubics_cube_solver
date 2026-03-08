@@ -231,3 +231,39 @@ def draw_cell_color_markers(frame, cell_boxes, cell_samples):
 			1,
 			cv2.LINE_AA,
 		)
+
+
+def draw_solution_overlay(frame, status: str, solution_text: str, is_error: bool):
+	panel_margin = 20
+	panel_x = panel_margin
+	panel_w = frame.shape[1] - panel_margin * 2
+	panel_h = 96
+	panel_bottom = frame.shape[0] - 48
+	panel_y = panel_bottom - panel_h
+
+	overlay = frame.copy()
+	cv2.rectangle(overlay, (panel_x, panel_y), (panel_x + panel_w, panel_y + panel_h), (30, 30, 30), -1)
+	frame[:] = cv2.addWeighted(overlay, 0.55, frame, 0.45, 0)
+
+	status_color = (0, 255, 0) if not is_error else (0, 0, 255)
+	cv2.putText(
+		frame,
+		status,
+		(panel_x + 12, panel_y + 32),
+		cv2.FONT_HERSHEY_SIMPLEX,
+		0.72,
+		status_color,
+		2,
+		cv2.LINE_AA,
+	)
+
+	cv2.putText(
+		frame,
+		solution_text,
+		(panel_x + 12, panel_y + 68),
+		cv2.FONT_HERSHEY_SIMPLEX,
+		0.63,
+		(255, 255, 255),
+		2,
+		cv2.LINE_AA,
+	)

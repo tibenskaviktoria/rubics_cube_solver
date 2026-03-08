@@ -14,22 +14,18 @@ def scanned_faces_correct(captured_faces):
 			color_count[label] = color_count.get(label, 0) + 1
 	
 	if has_unknown:
-		print("Error: Unknown color detected in scanned faces")
-		return False
+		return False, "Error: Unknown color detected in scanned faces"
 	
 	expected_colors = {"white", "yellow", "red", "orange", "green", "blue"}
 	scanned_colors = set(color_count.keys())
 	
 	if scanned_colors != expected_colors:
-		print(f"Error: Missing or extra colors. Expected {expected_colors}, got {scanned_colors}")
-		return False
+		return False, f"Error: Missing or extra colors. Expected {expected_colors}, got {scanned_colors}"
 	
 	if all(count == 4 for count in color_count.values()):
-		print("Success: All 6 colors scanned correctly with 4 stickers each")
-		return True
+		return True, "Success: All 6 colors scanned correctly with 4 stickers each"
 	else:
-		print(f"Error: Color distribution incorrect. Got {color_count}")
-		return False
+		return False, f"Error: Color distribution incorrect. Got {color_count}"
 	
 
 def generate_scramble_string(captured_faces):
@@ -96,11 +92,10 @@ def get_turn(turn_index, is_reverse):
 
 
 def bi_directional_BFS(scramble):
-	
 	solution = generate_solution(scramble)
-	# print(f"Generated solution: |{solution}|")
+	print(f"Generated solution: |{solution}|")
 	scramble = discard_unnecessary_faces(scramble)
-	# print(f"Scramble for BFS:   |{scramble}|")
+	print(f"Scramble for BFS:   |{scramble}|")
 	
 	states_from_scramle = {scramble: ""}
 	states_from_solution = {solution: ""}
@@ -110,7 +105,7 @@ def bi_directional_BFS(scramble):
 		current_states = {}
 		for state in states_from_scramle:
 			if state in states_from_solution:
-				return states_from_scramle[state] + " " + states_from_solution[state]
+				return True, states_from_scramle[state] + " " + states_from_solution[state]
 			moves_so_far = states_from_scramle[state]
 			new_state = None
 			# Apply all the possible moves (9) - R, R2, R', U, U2, U', F, F2, F'
@@ -126,7 +121,7 @@ def bi_directional_BFS(scramble):
 		current_states = {}
 		for state in states_from_solution:
 			if state in states_from_scramle:
-				return states_from_scramle[state] + " " + states_from_solution[state]
+				return True, states_from_scramle[state] + " " + states_from_solution[state]
 			moves_so_far = states_from_solution[state]
 			new_state = None
 			# Apply all the possible moves (9) - R, R2, R', U, U2, U', F, F2, F'
@@ -137,12 +132,13 @@ def bi_directional_BFS(scramble):
 					new_state = applyMove(new_state, move)
 					current_states[new_state] = move_names[move] + get_turn(turn, True) + " " + moves_so_far
 		states_from_solution = current_states
-	return "No solution found within depth limit"
+	return False, "No solution found within depth limit"
 
 
 def get_cube_solution(captured_faces):
-	if not scanned_faces_correct(captured_faces):
-		return "Cannot generate solution due to errors in scanned faces."
+	ret, error_message = scanned_faces_correct(captured_faces)
+	if not ret:
+		return False, error_message
 	face_strings = generate_scramble_string(captured_faces)
 	scramble = transform_scan_format_to_solver_input(face_strings)
 	print("Transformed scramble for solver input:", scramble)
