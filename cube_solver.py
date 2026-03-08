@@ -15,7 +15,7 @@ from helper_functions import (
 	FACE_COUNT
 )
 from solving_logic import (
-	scanned_faces_correct
+	get_cube_solution
 )
 
 
@@ -60,6 +60,7 @@ def main():
 			scanning_active = True
 			status_text = "Scanning started. Press SPACE to save current face"
 			status_color = (0, 255, 255)
+			print("=== Scan Started ===")
 
 		if key == 32 and scanning_active: # SPACE key to capture current face
 			if captured_count >= FACE_COUNT:
@@ -81,7 +82,10 @@ def main():
 				status_color = (255, 255, 0)
 				scanning_active = False
 				print_scanned_faces_summary(captured_faces)
-				scanned_faces_correct(captured_faces)
+				solution = get_cube_solution(captured_faces)
+				print("Solution:", solution)
+				print("Solution length:", len(solution.split()))
+				print("=== Scan Complete ===\n")
 
 	cap.release()
 	cv2.destroyAllWindows()
