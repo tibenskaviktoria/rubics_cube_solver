@@ -142,9 +142,9 @@ Example:
   2. Turn Up counterclockwise
   3. Turn Front clockwise
 
-Rotation reference:
+Rotation reference on 3x3 cube:
 
-![Cube rotation GIF/video](docs/gifs/cube_notation_gif.mp4)
+![Cube notation example on 3x3 cube](docs/gifs/cube_notation.gif)
 
 ## Running
 
